@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Quiz！聖灯祭！</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Friendly Rounded Look -->
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            bg: '#FBF9F1',       /* Soft Warm Cream */
+                            card: '#FFFFFF',     /* Pure White */
+                            mint: '#E2F1E7',     /* Soft Mint */
+                            mintDark: '#388E3C', 
+                            pink: '#FDE2E4',     /* Gentle Pastel Pink */
+                            pinkDark: '#D97706',
+                            lavender: '#E8E8E4', 
+                            purple: '#F1E3F7',
+                            yellow: '#FFF1C5',   /* Pastel Yellow */
+                            yellowDark: '#D97706',
+                            blue: '#E0F4FF',     /* Pastel Blue */
+                            blueDark: '#0284C7',
+                            text: '#1E293B',     /* Slate 800 - High Contrast & Gentle */
+                            muted: '#64748B'
+                        }
+                    },
+                    fontFamily: {
+                        rounded: ['"M PLUS Rounded 1c"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #FBF9F1;
+            color: #1E293B;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* 3D Flip Card Effect */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Soft Pastel Shadow Effects */
+        .pastel-shadow {
+            box-shadow: 0 10px 30px -5px rgba(180, 190, 205, 0.25), 0 4px 10px -2px rgba(180, 190, 205, 0.12);
+        }
+        .pastel-btn-shadow {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+        .pastel-btn-shadow:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Gentle Floating Ambient Animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+            animation: float 8s ease-in-out 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+    <div class="fixed top-6 left-6 w-28 h-28 rounded-full bg-pastel-pink/40 blur-2xl animate-float -z-10 pointer-events-none"></div>
+    <div class="fixed bottom-12 right-6 w-36 h-36 rounded-full bg-pastel-purple/50 blur-2xl animate-float-delayed -z-10 pointer-events-none"></div>
+    <div class="fixed top-1/3 right-8 w-24 h-24 rounded-full bg-pastel-yellow/60 blur-2xl animate-float -z-10 pointer-events-none"></div>
+    <div class="fixed bottom-1/4 left-6 w-32 h-32 rounded-full bg-pastel-blue/50 blur-2xl animate-float-delayed -z-10 pointer-events-none"></div>
+
+    <header class="w-full pt-6 pb-3 px-4 text-center max-w-xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">🏮</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-pastel-text tracking-tight flex items-center gap-2">
+                Quiz！聖灯祭！
+            </h1>
+        </div>
+        <button onclick="openModal()" class="bg-white/80 hover:bg-white text-pastel-text font-bold py-2 px-3.5 rounded-2xl border border-gray-200/80 shadow-sm transition flex items-center gap-1.5 text-xs sm:text-sm active:scale-95">
+            <i class="fa-solid fa-gear text-pastel-blueDark"></i>
+            <span>問題編集</span>
+        </button>
+    </header>
+
+    <main class="w-full max-w-lg mx-auto px-4 flex-1 flex flex-col justify-center items-center">
+        
+        <!-- Category Tabs -->
+        <div class="w-full grid grid-cols-2 gap-2 p-1.5 bg-white/80 backdrop-blur-md rounded-2xl border border-gray-100 shadow-sm mb-4">
+            <button id="tab-general" onclick="switchCategory('general')" class="py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-house font-bold"></i> 一般向け
+            </button>
+            <button id="tab-nursing" onclick="switchCategory('nursing')" class="py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-user-nurse"></i> 看護学生向け
+            </button>
+        </div>
+
+        <!-- Progress Counter & Bar -->
+        <div class="w-full mb-2 flex items-center justify-between text-xs sm:text-sm font-bold text-pastel-muted px-1">
+            <span id="question-count"><i class="fa-solid fa-layer-group text-pastel-blueDark mr-1"></i> 問題 1 / 10</span>
+            <span id="category-badge" class="px-2.5 py-0.5 bg-pastel-mint text-pastel-mintDark text-xs rounded-full border border-emerald-200/50">一般向け</span>
+        </div>
+        <div class="w-full bg-white/80 h-2.5 rounded-full overflow-hidden shadow-inner mb-4 border border-gray-100">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-300 to-teal-400 transition-all duration-300 rounded-full" style="width: 10%"></div>
+        </div>
+
+        <div class="w-full h-80 sm:h-96 perspective-1000 cursor-pointer group my-1" id="card-container" onclick="flipCard()">
+            <div id="card-inner" class="relative w-full h-full transform-style-3d duration-500 rounded-3xl pastel-shadow bg-white border border-white/80">
+                
+                <!-- CARD FRONT (QUESTION) -->
+                <div class="absolute inset-0 w-full h-full rounded-3xl bg-gradient-to-br from-white via-white to-emerald-50/40 p-6 sm:p-8 flex flex-col justify-between backface-hidden border border-emerald-100/60">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <span class="text-emerald-600 font-extrabold text-xs sm:text-sm tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> 【問題】
+                        </span>
+                        <span class="text-xs text-pastel-muted flex items-center gap-1">
+                            <i class="fa-solid fa-hand-pointer"></i> タップで答え
+                        </span>
+                    </div>
+
+                    <div class="my-auto text-center py-4">
+                        <p id="card-question" class="text-lg sm:text-xl md:text-2xl font-bold text-pastel-text leading-relaxed tracking-wide">
+                            読み込み中...
+                        </p>
+                    </div>
+
+                    <div class="text-center pt-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs text-pastel-muted bg-gray-50/80 px-3 py-1.5 rounded-full border border-gray-100">
+                            <i class="fa-solid fa-rotate text-emerald-500"></i> タップして裏面を見る
+                        </span>
+                    </div>
+                </div>
+
+                <!-- CARD BACK (ANSWER) -->
+                <div class="absolute inset-0 w-full h-full rounded-3xl bg-gradient-to-br from-white via-white to-rose-50/40 p-6 sm:p-8 flex flex-col justify-between backface-hidden rotate-y-180 border border-rose-100/60">
+                    <div class="flex justify-between items-center border-b border-rose-100/80 pb-3">
+                        <span class="text-rose-500 font-extrabold text-xs sm:text-sm tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> 【こたえ】
+                        </span>
+                        <span class="text-xs text-pastel-muted flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left"></i> タップで問題
+                        </span>
+                    </div>
+
+                    <div class="my-auto text-center py-4">
+                        <p id="card-answer" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-rose-500 leading-relaxed">
+                            解答表示
+                        </p>
+                    </div>
+
+                    <div class="text-center pt-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs text-pastel-muted bg-gray-50/80 px-3 py-1.5 rounded-full border border-gray-100">
+                            <i class="fa-solid fa-hand-pointer text-rose-400"></i> スワイプで移動できます
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="w-full grid grid-cols-3 gap-3 mt-5">
+            <button id="prev-btn" onclick="prevQuestion()" class="py-3 px-4 bg-white hover:bg-gray-50 text-pastel-text font-bold rounded-2xl border border-gray-200/80 pastel-btn-shadow flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-chevron-left text-pastel-blueDark"></i> 前へ
+            </button>
+            <button id="shuffle-btn" onclick="shuffleAndReset()" class="py-3 px-4 bg-amber-50 hover:bg-amber-100/80 text-pastel-text font-bold rounded-2xl border border-amber-200/60 pastel-btn-shadow flex items-center justify-center gap-2 transition-all active:scale-95" title="問題をシャッフル">
+                <i class="fa-solid fa-shuffle text-amber-500"></i> シャッフル
+            </button>
+            <button id="next-btn" onclick="nextQuestion()" class="py-3 px-4 bg-emerald-50 hover:bg-emerald-100/80 text-pastel-text font-bold rounded-2xl border border-emerald-200/60 pastel-btn-shadow flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+                次へ <i class="fa-solid fa-chevron-right text-emerald-600"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="w-full py-4 text-center text-xs text-pastel-muted/70 mt-4">
+        Quiz！聖灯祭！ &copy; 2026
+    </footer>
+
+    <div id="editor-modal" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-gray-100">
+            
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 bg-pastel-bg border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-bold text-base sm:text-lg text-pastel-text flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-emerald-600"></i> 問題の編集・管理
+                </h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white border border-gray-200 text-pastel-muted hover:text-pastel-text flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-5">
+                
+                <!-- Category Select Tabs inside Modal -->
+                <div class="flex border-b border-gray-200">
+                    <button id="edit-tab-general" onclick="setEditTarget('general')" class="py-2 px-4 font-bold text-xs sm:text-sm border-b-2 border-emerald-500 text-emerald-600 transition">
+                        一般向け問題
+                    </button>
+                    <button id="edit-tab-nursing" onclick="setEditTarget('nursing')" class="py-2 px-4 font-bold text-xs sm:text-sm text-gray-400 hover:text-emerald-600 transition">
+                        看護学生向け問題
+                    </button>
+                </div>
+
+                <!-- CSV Import/Export Section -->
+                <div class="bg-pastel-bg/60 p-3.5 rounded-2xl border border-gray-200/60 space-y-2.5">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-pastel-muted flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-csv text-sky-500"></i> CSVインポート / エクスポート
+                    </h4>
+                    <p class="text-xs text-pastel-muted">「問題,答え」形式のCSVファイルを保存・復元できます。</p>
+                    <div class="flex gap-2">
+                        <label class="flex-1 py-2 px-3 bg-white border border-gray-200 text-pastel-text rounded-xl font-bold text-xs hover:bg-gray-50 flex items-center justify-center gap-1.5 cursor-pointer text-center shadow-sm">
+                            <i class="fa-solid fa-upload text-emerald-600"></i> CSV読み込み
+                            <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="importCSV(event)">
+                        </label>
+                        <button onclick="exportCSV()" class="flex-1 py-2 px-3 bg-white border border-gray-200 text-pastel-text rounded-xl font-bold text-xs hover:bg-gray-50 flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-download text-sky-600"></i> CSV書き出し
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add New Question Form -->
+                <div class="bg-pastel-bg/60 p-3.5 rounded-2xl border border-gray-200/60 space-y-2.5">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-pastel-muted flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle text-emerald-600"></i> 新しい問題を追加
+                    </h4>
+                    <input type="text" id="new-q" placeholder="問題文を入力..." class="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-400 outline-none">
+                    <input type="text" id="new-a" placeholder="答えを入力..." class="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-400 outline-none">
+                    <button onclick="addQuestion()" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-plus"></i> 問題を追加
+                    </button>
+                </div>
+
+                <!-- Question List with Edit & Delete Options -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-pastel-muted">
+                            登録済み問題 (<span id="edit-count">0</span>件)
+                        </h4>
+                        <button onclick="resetDefault()" class="text-xs text-rose-500 hover:underline">初期状態にリセット</button>
+                    </div>
+                    <div id="questions-editor-list" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        <!-- Dynamic items generated by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3.5 bg-gray-50 border-t border-gray-100 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 bg-slate-700 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-800 transition">
+                    閉じる
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Default Question Datasets ---
+        const defaultGeneral = [
+            { q: "聖灯祭の「聖灯」の読み方は？", a: "せいとう" },
+            { q: "ナイチンゲールの生誕の国はどこ？", a: "イギリス（フィレンツェ生まれ）" },
+            { q: "人間の骨の数は成人でおよそ何個？", a: "約206個" },
+            { q: "血液の中で酸素を運ぶ役割を持つ細胞は？", a: "赤血球" },
+            { q: "心臓にある部屋の数はいくつ？", a: "4つ（右心房・右心室・左心房・左心室）" },
+            { q: "一般的な成人の平熱範囲はおよそ何度？", a: "36.5℃〜37.1℃程度" },
+            { q: "AEDは何の略称？", a: "自動体外式除細動器" },
+            { q: "人の体の中で最も大きい臓器は？", a: "肝臓" },
+            { q: "脈拍を測る際によく使われる手首の動脈は？", a: "橈骨動脈（とうこつどうみゃく）" },
+            { q: "体温調節を行う脳の部位はどこ？", a: "視床下部" },
+            { q: "健康な成人の1分の安静時脈拍数の目安は？", a: "60〜100回/分" },
+            { q: "人間の体内水分の割合はおよそ何％？", a: "約60％" }
+        ];
+
+        const defaultNursing = [
+            { q: "バイタルサインの5大要素とは？", a: "体温・脈拍・呼吸・血圧・（意識レベル/痛みの強さ）" },
+            { q: "成人における1日の標準的な尿量は？", a: "1,000〜1,500ml" },
+            { q: "瞳孔反射で対光反射に関与する脳神経は？", a: "動眼神経（第III脳神経）" },
+            { q: "褥瘡（じょくそう）の発生リスク評価スケールで有名なものは？", a: "ブレーデンスケール" },
+            { q: "滅菌と消毒の違いは？", a: "滅菌はすべての微生物を死滅、消毒は病原性を削減" },
+            { q: "1回換気量の成人の標準値はおよそいくら？", a: "約500ml" },
+            { q: "インスリン注射の主な投与経路は？", a: "皮下注射" },
+            { q: "ジャパン・コーマ・スケール（JCS）の最高点（最も重度）は？", a: "300" },
+            { q: "点滴静脈内注射の滴下数計算で大人用セットの1mlあたりの滴下数は？", a: "20滴/ml" },
+            { q: "チアノーゼが顕著に現れる爪床や唇の酸素飽和度（SpO2）の目安は？", a: "約85％以下" },
+            { q: "クスマウル呼吸が特徴的に見られる病態は？", a: "糖尿病性ケトアシドーシス" },
+            { q: "聴診器のベル型が得意とする音域は？", a: "低音域" }
+        ];
+
+        // --- Application State ---
+        let currentCategory = 'general';
+        let questionBank = {
+            general: [],
+            nursing: []
+        };
+        let activeQuiz = [];
+        let currentIndex = 0;
+        let isFlipped = false;
+        let currentEditingCategory = 'general';
+        let editingIndex = -1; // -1 means no question is being edited inline
+
+        // --- Init Handler ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            switchCategory('general');
+            setupSwipe();
+        });
+
+        function loadFromLocalStorage() {
+            const savedGeneral = localStorage.getItem('quiz_seitousai_gen');
+            const savedNursing = localStorage.getItem('quiz_seitousai_nurs');
+
+            questionBank.general = savedGeneral ? JSON.parse(savedGeneral) : [...defaultGeneral];
+            questionBank.nursing = savedNursing ? JSON.parse(savedNursing) : [...defaultNursing];
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('quiz_seitousai_gen', JSON.stringify(questionBank.general));
+            localStorage.setItem('quiz_seitousai_nurs', JSON.stringify(questionBank.nursing));
+        }
+
+        function switchCategory(category) {
+            currentCategory = category;
+            
+            const btnGen = document.getElementById('tab-general');
+            const btnNurs = document.getElementById('tab-nursing');
+            const badge = document.getElementById('category-badge');
+
+            if (category === 'general') {
+                btnGen.className = "py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 bg-emerald-100 text-emerald-800 shadow-sm";
+                btnNurs.className = "py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 text-pastel-muted hover:text-pastel-text";
+                badge.className = "px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs rounded-full border border-emerald-200/50";
+                badge.innerText = "一般向け";
+            } else {
+                btnNurs.className = "py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 bg-rose-100 text-rose-800 shadow-sm";
+                btnGen.className = "py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 text-pastel-muted hover:text-pastel-text";
+                badge.className = "px-2.5 py-0.5 bg-rose-100 text-rose-800 text-xs rounded-full border border-rose-200/50";
+                badge.innerText = "看護学生向け";
+            }
+
+            shuffleAndReset();
+        }
+
+        function shuffleAndReset() {
+            const pool = [...questionBank[currentCategory]];
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            activeQuiz = pool.slice(0, 10);
+            currentIndex = 0;
+            renderCard();
+        }
+
+        function renderCard() {
+            isFlipped = false;
+            const cardInner = document.getElementById('card-inner');
+            cardInner.classList.remove('rotate-y-180');
+
+            if (activeQuiz.length === 0) {
+                document.getElementById('card-question').innerText = "問題が登録されていません。右上「問題編集」より追加してください。";
+                document.getElementById('card-answer').innerText = "なし";
+                document.getElementById('question-count').innerHTML = `<i class="fa-solid fa-layer-group text-pastel-blueDark mr-1"></i> 問題 0 / 0`;
+                document.getElementById('progress-bar').style.width = "0%";
+                return;
+            }
+
+            const current = activeQuiz[currentIndex];
+            document.getElementById('card-question').innerText = current.q;
+            document.getElementById('card-answer').innerText = current.a;
+
+            const total = activeQuiz.length;
+            document.getElementById('question-count').innerHTML = `<i class="fa-solid fa-layer-group text-pastel-blueDark mr-1"></i> 問題 ${currentIndex + 1} / ${total}`;
+            document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / total) * 100}%`;
+
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            document.getElementById('next-btn').disabled = currentIndex === activeQuiz.length - 1;
+        }
+
+        function flipCard() {
+            if (activeQuiz.length === 0) return;
+            isFlipped = !isFlipped;
+            const cardInner = document.getElementById('card-inner');
+            if (isFlipped) {
+                cardInner.classList.add('rotate-y-180');
+            } else {
+                cardInner.classList.remove('rotate-y-180');
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < activeQuiz.length - 1) {
+                currentIndex++;
+                renderCard();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCard();
+            }
+        }
+
+        function setupSwipe() {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const card = document.getElementById('card-inner');
+
+            card.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            card.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const diff = touchEndX - touchStartX;
+                if (Math.abs(diff) > 40) {
+                    if (diff < 0) {
+                        nextQuestion();
+                    } else {
+                        prevQuestion();
+                    }
+                }
+            }
+        }
+
+        const editorModal = document.getElementById('editor-modal');
+        function openModal() {
+            editingIndex = -1;
+            setEditTarget(currentCategory);
+            editorModal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            editingIndex = -1;
+            editorModal.classList.add('hidden');
+            shuffleAndReset();
+        }
+
+        function setEditTarget(cat) {
+            editingIndex = -1;
+            currentEditingCategory = cat;
+            const tabGen = document.getElementById('edit-tab-general');
+            const tabNurs = document.getElementById('edit-tab-nursing');
+
+            if (cat === 'general') {
+                tabGen.className = "py-2 px-4 font-bold text-xs sm:text-sm border-b-2 border-emerald-500 text-emerald-600 transition";
+                tabNurs.className = "py-2 px-4 font-bold text-xs sm:text-sm text-gray-400 hover:text-emerald-600 transition";
+            } else {
+                tabNurs.className = "py-2 px-4 font-bold text-xs sm:text-sm border-b-2 border-emerald-500 text-emerald-600 transition";
+                tabGen.className = "py-2 px-4 font-bold text-xs sm:text-sm text-gray-400 hover:text-emerald-600 transition";
+            }
+
+            renderEditorList();
+        }
+
+        function renderEditorList() {
+            const list = questionBank[currentEditingCategory];
+            const container = document.getElementById('questions-editor-list');
+            document.getElementById('edit-count').innerText = list.length;
+            container.innerHTML = '';
+
+            list.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = "p-2.5 bg-white rounded-xl border border-gray-100 shadow-sm text-xs space-y-2";
+                
+                if (editingIndex === idx) {
+                    // Inline Edit Form Mode
+                    row.innerHTML = `
+                        <div class="space-y-2">
+                            <div>
+                                <label class="font-bold text-gray-500 text-[10px]">問題文:</label>
+                                <input type="text" id="edit-q-${idx}" value="${escapeHtml(item.q)}" class="w-full p-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-400">
+                            </div>
+                            <div>
+                                <label class="font-bold text-gray-500 text-[10px]">答え:</label>
+                                <input type="text" id="edit-a-${idx}" value="${escapeHtml(item.a)}" class="w-full p-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-400">
+                            </div>
+                            <div class="flex justify-end gap-2 pt-1">
+                                <button onclick="cancelEdit()" class="px-3 py-1 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300">
+                                    キャンセル
+                                </button>
+                                <button onclick="saveEdit(${idx})" class="px-3 py-1 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600">
+                                    保存
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Normal Display Mode
+                    row.innerHTML = `
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex-1 overflow-hidden">
+                                <div class="font-bold text-pastel-text truncate">${idx + 1}. Q: ${escapeHtml(item.q)}</div>
+                                <div class="text-pastel-muted truncate">A: ${escapeHtml(item.a)}</div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="startEdit(${idx})" class="text-emerald-600 hover:text-emerald-700 p-1.5 rounded-lg hover:bg-emerald-50 font-bold" title="編集">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteQuestion(${idx})" class="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 font-bold" title="削除">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.appendChild(row);
+            });
+        }
+
+        function startEdit(idx) {
+            editingIndex = idx;
+            renderEditorList();
+        }
+
+        function cancelEdit() {
+            editingIndex = -1;
+            renderEditorList();
+        }
+
+        function saveEdit(idx) {
+            const qInput = document.getElementById(`edit-q-${idx}`).value.trim();
+            const aInput = document.getElementById(`edit-a-${idx}`).value.trim();
+
+            if (!qInput || !aInput) {
+                alert('問題文と答えの両方を入力してください。');
+                return;
+            }
+
+            questionBank[currentEditingCategory][idx] = { q: qInput, a: aInput };
+            saveToLocalStorage();
+            editingIndex = -1;
+            renderEditorList();
+        }
+
+        function addQuestion() {
+            const qInput = document.getElementById('new-q');
+            const aInput = document.getElementById('new-a');
+            const q = qInput.value.trim();
+            const a = aInput.value.trim();
+
+            if (!q || !a) {
+                alert('問題文と答えの両方を入力してください。');
+                return;
+            }
+
+            questionBank[currentEditingCategory].push({ q, a });
+            saveToLocalStorage();
+            qInput.value = '';
+            aInput.value = '';
+            renderEditorList();
+        }
+
+        function deleteQuestion(idx) {
+            if (confirm('この問題を削除しますか？')) {
+                questionBank[currentEditingCategory].splice(idx, 1);
+                saveToLocalStorage();
+                renderEditorList();
+            }
+        }
+
+        function resetDefault() {
+            if (confirm('このカテゴリの問題を初期状態に戻しますか？（追加・編集した内容が初期化されます）')) {
+                if (currentEditingCategory === 'general') {
+                    questionBank.general = [...defaultGeneral];
+                } else {
+                    questionBank.nursing = [...defaultNursing];
+                }
+                saveToLocalStorage();
+                editingIndex = -1;
+                renderEditorList();
+            }
+        }
+
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/);
+                const imported = [];
+
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const q = parts[0].trim().replace(/^"(.*)"$/, '$1');
+                        const a = parts.slice(1).join(',').trim().replace(/^"(.*)"$/, '$1');
+                        if (q && a) {
+                            imported.push({ q, a });
+                        }
+                    }
+                });
+
+                if (imported.length > 0) {
+                    if (confirm(`${imported.length}件の問題を読み込みました。現在のリストに追加しますか？\n（「キャンセル」を選択すると上書きになります）`)) {
+                        questionBank[currentEditingCategory] = [...questionBank[currentEditingCategory], ...imported];
+                    } else {
+                        questionBank[currentEditingCategory] = imported;
+                    }
+                    saveToLocalStorage();
+                    renderEditorList();
+                    alert('CSVのインポートが完了しました！');
+                } else {
+                    alert('有効なデータが見つかりませんでした。CSVフォーマットを確認してください（例: 問題文,解答）');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            event.target.value = '';
+        }
+
+        function exportCSV() {
+            const list = questionBank[currentEditingCategory];
+            if (list.length === 0) {
+                alert('出力するデータがありません。');
+                return;
+            }
+
+            let csvContent = "\uFEFF";
+            list.forEach(item => {
+                const cleanQ = `"${item.q.replace(/"/g, '""')}"`;
+                const cleanA = `"${item.a.replace(/"/g, '""')}"`;
+                csvContent += `${cleanQ},${cleanA}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Quiz_聖灯祭_${currentEditingCategory}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
